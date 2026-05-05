@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1 (2025-05-05)
+- Fixed npm publish: added `files` field to only include `dist/` in package.
+- Added `.npmignore` for explicit publish control.
+
 ## 1.1.0 (2025-05-05)
 - Added `admin_batch_mutation` tool for bulk mutations on the Admin API (delete, update, etc.).
 - Added `shop_batch_mutation` tool for bulk mutations on the Shop API.
