@@ -188,3 +188,98 @@ export async function getShopOperations(): Promise<any> {
   const client = getClient();
   return client.request(getShopUrl(), operationsSummaryQuery);
 }
+
+export interface BatchResult {
+  total: number;
+  succeeded: number;
+  failed: number;
+  results: Array<{
+    id: string;
+    success: boolean;
+    data?: any;
+    error?: string;
+  }>;
+}
+
+/**
+ * Execute a GraphQL mutation in batch for multiple IDs on the Admin API.
+ * Runs mutations concurrently with configurable concurrency.
+ */
+export async function adminBatchMutation(
+  mutationString: string,
+  ids: string[],
+  variableName: string = "id",
+  extraVariables?: Record<string, any>,
+  concurrency: number = 5,
+): Promise<BatchResult> {
+  return executeBatch(
+    getAdminUrl(),
+    mutationString,
+    ids,
+    variableName,
+    extraVariables,
+    concurrency,
+  );
+}
+
+/**
+ * Execute a GraphQL mutation in batch for multiple IDs on the Shop API.
+ * Runs mutations concurrently with configurable concurrency.
+ */
+export async function shopBatchMutation(
+  mutationString: string,
+  ids: string[],
+  variableName: string = "id",
+  extraVariables?: Record<string, any>,
+  concurrency: number = 5,
+): Promise<BatchResult> {
+  return executeBatch(
+    getShopUrl(),
+    mutationString,
+    ids,
+    variableName,
+    extraVariables,
+    concurrency,
+  );
+}
+
+async function executeBatch(
+  url: string,
+  mutationString: string,
+  ids: string[],
+  variableName: string,
+  extraVariables: Record<string, any> | undefined,
+  concurrency: number,
+): Promise<BatchResult> {
+  const client = getClient();
+  const results: BatchResult["results"] = [];
+
+  const queue = [...ids];
+  let succeeded = 0;
+  let failed = 0;
+
+  async function worker() {
+    while (queue.length > 0) {
+      const id = queue.shift()!;
+      const variables = { ...extraVariables, [variableName]: id };
+
+      try {
+        const data = await client.request(url, mutationString, variables);
+        succeeded++;
+        results.push({ id, success: true, data });
+      } catch (error) {
+        failed++;
+        const message = error instanceof Error ? error.message : String(error);
+        results.push({ id, success: false, error: message });
+      }
+    }
+  }
+
+  const workers = Array.from(
+    { length: Math.min(concurrency, ids.length) },
+    () => worker(),
+  );
+  await Promise.all(workers);
+
+  return { total: ids.length, succeeded, failed, results };
+}

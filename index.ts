@@ -35,10 +35,12 @@ if (existsSync(apiKeyPath)) {
 import {
   adminQuery,
   adminMutation,
+  adminBatchMutation,
   getAdminSchema,
   getAdminOperations,
   shopQuery,
   shopMutation,
+  shopBatchMutation,
   getShopSchema,
   getShopOperations,
 } from "./src/tools/index.js";
@@ -86,6 +88,44 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
     },
     {
+      name: "admin_batch_mutation",
+      description:
+        "Execute a GraphQL mutation in batch for multiple IDs on the Vendure Admin API. " +
+        "Runs mutations concurrently and returns aggregated success/failure results per ID. " +
+        "Use this for bulk delete, update, or any mutation that takes an ID input.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          mutation: {
+            type: "string",
+            description:
+              "The GraphQL mutation string. Must accept a variable for the ID (e.g. $id: ID!).",
+          },
+          ids: {
+            type: "array",
+            items: { type: "string" },
+            description: "Array of IDs to execute the mutation for.",
+          },
+          variableName: {
+            type: "string",
+            description:
+              'Name of the variable holding the ID in the mutation. Default: "id".',
+          },
+          extraVariables: {
+            type: "object",
+            description:
+              "Additional variables to pass alongside each ID (e.g. { enabled: false }).",
+          },
+          concurrency: {
+            type: "number",
+            description:
+              "Max number of concurrent mutations. Default: 5.",
+          },
+        },
+        required: ["mutation", "ids"],
+      },
+    },
+    {
       name: "get_admin_schema",
       description:
         "Fetch the full Admin API GraphQL schema introspection. (Warning: Large output)",
@@ -122,6 +162,44 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           variables: { type: "object", description: "Optional variables" },
         },
         required: ["mutation"],
+      },
+    },
+    {
+      name: "shop_batch_mutation",
+      description:
+        "Execute a GraphQL mutation in batch for multiple IDs on the Vendure Shop API. " +
+        "Runs mutations concurrently and returns aggregated success/failure results per ID. " +
+        "Use this for bulk delete, update, or any mutation that takes an ID input.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          mutation: {
+            type: "string",
+            description:
+              "The GraphQL mutation string. Must accept a variable for the ID (e.g. $id: ID!).",
+          },
+          ids: {
+            type: "array",
+            items: { type: "string" },
+            description: "Array of IDs to execute the mutation for.",
+          },
+          variableName: {
+            type: "string",
+            description:
+              'Name of the variable holding the ID in the mutation. Default: "id".',
+          },
+          extraVariables: {
+            type: "object",
+            description:
+              "Additional variables to pass alongside each ID.",
+          },
+          concurrency: {
+            type: "number",
+            description:
+              "Max number of concurrent mutations. Default: 5.",
+          },
+        },
+        required: ["mutation", "ids"],
       },
     },
     {
@@ -177,6 +255,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             },
           ],
         };
+      case "admin_batch_mutation":
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                await adminBatchMutation(
+                  args?.mutation as string,
+                  args?.ids as string[],
+                  (args?.variableName as string) || "id",
+                  args?.extraVariables as Record<string, any>,
+                  (args?.concurrency as number) || 5,
+                ),
+                null,
+                2,
+              ),
+            },
+          ],
+        };
       case "get_admin_schema":
         return {
           content: [
@@ -220,6 +317,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 await shopMutation(
                   args?.mutation as string,
                   args?.variables as Record<string, any>,
+                ),
+                null,
+                2,
+              ),
+            },
+          ],
+        };
+      case "shop_batch_mutation":
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                await shopBatchMutation(
+                  args?.mutation as string,
+                  args?.ids as string[],
+                  (args?.variableName as string) || "id",
+                  args?.extraVariables as Record<string, any>,
+                  (args?.concurrency as number) || 5,
                 ),
                 null,
                 2,
