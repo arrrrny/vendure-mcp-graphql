@@ -1,5 +1,7 @@
 # vendure-mcp-graphql
 
+[![npm version](https://img.shields.io/npm/v/vendure-mcp-graphql.svg)](https://www.npmjs.com/package/vendure-mcp-graphql) [![npm downloads](https://img.shields.io/npm/dm/vendure-mcp-graphql.svg)](https://www.npmjs.com/package/vendure-mcp-graphql)
+
 MCP (Model Context Protocol) server for interacting with Vendure GraphQL APIs (Admin & Shop).
 
 ## Installation
