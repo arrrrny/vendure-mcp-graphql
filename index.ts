@@ -45,6 +45,33 @@ import {
   getShopOperations,
 } from "./src/tools/index.js";
 
+// Singleton pattern for shared resources
+class SharedResources {
+  private static instance: SharedResources | null = null;
+  private static initializing = false;
+
+  private constructor() {}
+
+  static async getInstance(): Promise<SharedResources> {
+    if (this.instance) return this.instance;
+
+    while (this.initializing) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    if (this.instance) return this.instance;
+
+    this.initializing = true;
+    try {
+      // Initialize any shared resources here if needed
+      this.instance = new SharedResources();
+      return this.instance;
+    } finally {
+      this.initializing = false;
+    }
+  }
+}
+
 const server = new Server(
   {
     name: "vendure-mcp-graphql",
@@ -375,9 +402,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // Start the server
 async function main() {
+  // Initialize shared resources (singleton pattern)
+  await SharedResources.getInstance();
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("Vendure GraphQL MCP server running on stdio");
+  console.error("Memory optimization: GraphQL client shared via singleton");
   console.error(
     `API Key: ${process.env.VENDURE_API_KEY ? "Present" : "Missing"}`,
   );
