@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.4.0 (2026-06-18)
+
+- Added `describe_operation` tool — describe any GraphQL query or mutation in detail.
+  - Accepts an operation name and returns which API(s) it's available on (Admin, Shop, or both).
+  - Shows the return type with all its fields and their types (resolved through wrappers).
+  - Shows all arguments with their input type fields.
+  - Optional `api` parameter to restrict lookup to a specific API.
+- Added `get_admin_type` tool — introspect a single Admin API type by name (fields, input fields, enum values).
+- Added `get_shop_type` tool — same for Shop API.
+- Internal: added `allOperationsWithTypesQuery` and helper functions to support type-based operation resolution.
+
+## 1.3.0 (2026-06-09)
+
+- Internal restructuring and improvements.
+
 ## 1.2.0 (2025-05-06)
 
 - Renamed environment variable `VENDURE_AUTH_TOKEN` to `VENDURE_API_KEY`.

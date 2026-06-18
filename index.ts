@@ -43,6 +43,7 @@ import {
   shopBatchMutation,
   getShopSchema,
   getShopOperations,
+  describeOperation,
 } from "./src/tools/index.js";
 
 // Singleton pattern for shared resources
@@ -145,8 +146,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           },
           concurrency: {
             type: "number",
-            description:
-              "Max number of concurrent mutations. Default: 5.",
+            description: "Max number of concurrent mutations. Default: 5.",
           },
         },
         required: ["mutation", "ids"],
@@ -217,13 +217,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           },
           extraVariables: {
             type: "object",
-            description:
-              "Additional variables to pass alongside each ID.",
+            description: "Additional variables to pass alongside each ID.",
           },
           concurrency: {
             type: "number",
-            description:
-              "Max number of concurrent mutations. Default: 5.",
+            description: "Max number of concurrent mutations. Default: 5.",
           },
         },
         required: ["mutation", "ids"],
@@ -240,6 +238,28 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       description:
         "List all available queries and mutations for the Shop API with descriptions.",
       inputSchema: { type: "object", properties: {}, required: [] },
+    },
+    {
+      name: "describe_operation",
+      description:
+        "Describe a GraphQL query or mutation in detail: shows which API(s) it's available on, arguments with input types, and the return type with all its fields. Checks both Admin and Shop APIs by default.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          operation: {
+            type: "string",
+            description:
+              "The name of the query or mutation to describe (e.g. productGroups, createProduct)",
+          },
+          api: {
+            type: "string",
+            enum: ["admin", "shop"],
+            description:
+              "Optional: restrict lookup to a specific API. If omitted, checks both Admin and Shop APIs.",
+          },
+        },
+        required: ["operation"],
+      },
     },
   ],
 }));
@@ -385,6 +405,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             {
               type: "text",
               text: JSON.stringify(await getShopOperations(), null, 2),
+            },
+          ],
+        };
+      case "describe_operation":
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                await describeOperation(
+                  args?.operation as string,
+                  args?.api as "admin" | "shop" | undefined,
+                ),
+                null,
+                2,
+              ),
             },
           ],
         };
