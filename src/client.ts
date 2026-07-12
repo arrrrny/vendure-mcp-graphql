@@ -15,6 +15,7 @@ export class GraphQLClient {
     url: string,
     queryString: string,
     variables?: Record<string, any>,
+    channelToken?: string,
   ): Promise<T> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -22,6 +23,10 @@ export class GraphQLClient {
 
     if (this.apiKey) {
       headers["vendure-api-key"] = this.apiKey;
+    }
+
+    if (channelToken) {
+      headers["vendure-token"] = channelToken;
     }
 
     const response = await fetch(url, {

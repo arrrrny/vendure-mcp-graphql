@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.0 (2026-07-12)
+
+- Added `channelToken` parameter to batch mutation tools.
+  - `admin_batch_mutation` and `shop_batch_mutation` now accept an optional `channelToken` parameter.
+  - When provided, the channel token is explicitly set to `'default-channel'` for all batch operations.
+  - Allows batch mutations to target specific channels in multi-channel setups.
+
 ## 1.4.0 (2026-06-18)
 
 - Added `describe_operation` tool — describe any GraphQL query or mutation in detail.

@@ -96,6 +96,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         properties: {
           query: { type: "string", description: "The GraphQL query string" },
           variables: { type: "object", description: "Optional variables" },
+          channelToken: {
+            type: "string",
+            description:
+              "Optional channel token to set channel context (e.g., 'default-channel', 'test-channel')",
+          },
         },
         required: ["query"],
       },
@@ -111,6 +116,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
             description: "The GraphQL mutation string",
           },
           variables: { type: "object", description: "Optional variables" },
+          channelToken: {
+            type: "string",
+            description:
+              "Optional channel token to set channel context (e.g., 'default-channel', 'test-channel')",
+          },
         },
         required: ["mutation"],
       },
@@ -148,6 +158,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
             type: "number",
             description: "Max number of concurrent mutations. Default: 5.",
           },
+          channelToken: {
+            type: "string",
+            description:
+              "Optional channel token to set channel context (e.g., 'default-channel', 'test-channel')",
+          },
         },
         required: ["mutation", "ids"],
       },
@@ -172,6 +187,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         properties: {
           query: { type: "string", description: "The GraphQL query string" },
           variables: { type: "object", description: "Optional variables" },
+          channelToken: {
+            type: "string",
+            description:
+              "Optional channel token to set channel context (e.g., 'default-channel', 'test-channel')",
+          },
         },
         required: ["query"],
       },
@@ -187,6 +207,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
             description: "The GraphQL mutation string",
           },
           variables: { type: "object", description: "Optional variables" },
+          channelToken: {
+            type: "string",
+            description:
+              "Optional channel token to set channel context (e.g., 'default-channel', 'test-channel')",
+          },
         },
         required: ["mutation"],
       },
@@ -222,6 +247,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           concurrency: {
             type: "number",
             description: "Max number of concurrent mutations. Default: 5.",
+          },
+          channelToken: {
+            type: "string",
+            description:
+              "Optional channel token to set channel context (e.g., 'default-channel', 'test-channel')",
           },
         },
         required: ["mutation", "ids"],
@@ -279,6 +309,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 await adminQuery(
                   args?.query as string,
                   args?.variables as Record<string, any>,
+                  args?.channelToken as string | undefined,
                 ),
                 null,
                 2,
@@ -295,6 +326,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 await adminMutation(
                   args?.mutation as string,
                   args?.variables as Record<string, any>,
+                  args?.channelToken as string | undefined,
                 ),
                 null,
                 2,
@@ -314,6 +346,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                   (args?.variableName as string) || "id",
                   args?.extraVariables as Record<string, any>,
                   (args?.concurrency as number) || 5,
+                  args?.channelToken as string | undefined,
                 ),
                 null,
                 2,
@@ -348,6 +381,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 await shopQuery(
                   args?.query as string,
                   args?.variables as Record<string, any>,
+                  args?.channelToken as string | undefined,
                 ),
                 null,
                 2,
@@ -364,6 +398,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 await shopMutation(
                   args?.mutation as string,
                   args?.variables as Record<string, any>,
+                  args?.channelToken as string | undefined,
                 ),
                 null,
                 2,
@@ -383,6 +418,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                   (args?.variableName as string) || "id",
                   args?.extraVariables as Record<string, any>,
                   (args?.concurrency as number) || 5,
+                  args?.channelToken as string | undefined,
                 ),
                 null,
                 2,
