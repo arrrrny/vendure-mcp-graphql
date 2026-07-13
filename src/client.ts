@@ -2,9 +2,11 @@
  * GraphQL Client for Vendure API
  * Handles authentication via API Key for both Admin and Shop APIs.
  *
- * Channel switching is done via per-channel API keys (CHANNEL_API_KEY_MAP),
- * not the vendure-token header, since API key auth doesn't support
- * channel switching via header on the Admin API.
+ * Channel switching is done via per-channel API keys (CHANNEL_API_KEY_MAP)
+ * combined with the vendure-token header. The per-channel API key provides
+ * authentication scoped to the target channel, and the vendure-token header
+ * tells Vendure which channel context to use for the request.
+ * Both are required for proper channel switching.
  */
 
 export interface GraphQLResponse<T = any> {
@@ -36,10 +38,12 @@ export class GraphQLClient {
       headers["vendure-api-key"] = apiKey;
     }
 
-    // NOTE: No vendure-token header is set here.
-    // Channel switching is done via per-channel API keys configured in CHANNEL_API_KEY_MAP.
-    // The vendure-token header does NOT work with API key auth on the Admin API
-    // (it returns FORBIDDEN even for SuperAdmin keys on non-default channels).
+    // Set vendure-token header when a channel token is provided and we have
+    // a mapped API key for it (ensuring the API key has access to this channel).
+    // The vendure-token header tells Vendure which channel context to use for the request.
+    if (channelToken) {
+      headers["vendure-token"] = channelToken;
+    }
 
     const response = await fetch(url, {
       method: "POST",
