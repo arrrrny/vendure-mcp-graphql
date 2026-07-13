@@ -1,6 +1,10 @@
 /**
  * GraphQL Client for Vendure API
- * Handles authentication via API Key for both Admin and Shop APIs
+ * Handles authentication via API Key for both Admin and Shop APIs.
+ *
+ * Channel switching is done via per-channel API keys (CHANNEL_API_KEY_MAP),
+ * not the vendure-token header, since API key auth doesn't support
+ * channel switching via header on the Admin API.
  */
 
 export interface GraphQLResponse<T = any> {
@@ -9,7 +13,10 @@ export interface GraphQLResponse<T = any> {
 }
 
 export class GraphQLClient {
-  constructor(private apiKey: string | null = null) {}
+  constructor(
+    private defaultApiKey: string | null = null,
+    private channelApiKeys: Record<string, string> = {},
+  ) {}
 
   async request<T = any>(
     url: string,
@@ -17,17 +24,22 @@ export class GraphQLClient {
     variables?: Record<string, any>,
     channelToken?: string,
   ): Promise<T> {
+    // Resolve API key: use channel-specific key if available, fall back to default
+    const apiKey =
+      (channelToken && this.channelApiKeys[channelToken]) || this.defaultApiKey;
+
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
 
-    if (this.apiKey) {
-      headers["vendure-api-key"] = this.apiKey;
+    if (apiKey) {
+      headers["vendure-api-key"] = apiKey;
     }
 
-    if (channelToken) {
-      headers["vendure-token"] = channelToken;
-    }
+    // NOTE: No vendure-token header is set here.
+    // Channel switching is done via per-channel API keys configured in CHANNEL_API_KEY_MAP.
+    // The vendure-token header does NOT work with API key auth on the Admin API
+    // (it returns FORBIDDEN even for SuperAdmin keys on non-default channels).
 
     const response = await fetch(url, {
       method: "POST",
@@ -57,12 +69,21 @@ export class GraphQLClient {
 let clientInstance: GraphQLClient | null = null;
 
 export function getClient(): GraphQLClient {
-  if (clientInstance) {
-    return clientInstance;
+  if (clientInstance) return clientInstance;
+
+  const defaultApiKey = process.env.VENDURE_API_KEY || null;
+
+  let channelApiKeys: Record<string, string> = {};
+  const raw = process.env.CHANNEL_API_KEY_MAP;
+  if (raw) {
+    try {
+      channelApiKeys = JSON.parse(raw);
+    } catch (e) {
+      console.error("Invalid CHANNEL_API_KEY_MAP JSON:", e);
+    }
   }
 
-  const apiKey = process.env.VENDURE_API_KEY || null;
-  clientInstance = new GraphQLClient(apiKey);
+  clientInstance = new GraphQLClient(defaultApiKey, channelApiKeys);
   return clientInstance;
 }
 

@@ -99,7 +99,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           channelToken: {
             type: "string",
             description:
-              "Optional channel token to set channel context (e.g., 'default-channel', 'test-channel')",
+              "Optional channel token to scope the request to a specific channel. Requires CHANNEL_API_KEY_MAP to be configured with a key for this channel.",
           },
         },
         required: ["query"],
@@ -119,7 +119,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           channelToken: {
             type: "string",
             description:
-              "Optional channel token to set channel context (e.g., 'default-channel', 'test-channel')",
+              "Optional channel token to scope the request to a specific channel. Requires CHANNEL_API_KEY_MAP to be configured with a key for this channel.",
           },
         },
         required: ["mutation"],
@@ -190,7 +190,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           channelToken: {
             type: "string",
             description:
-              "Optional channel token to set channel context (e.g., 'default-channel', 'test-channel')",
+              "Optional channel token to scope the request to a specific channel. Requires CHANNEL_API_KEY_MAP to be configured with a key for this channel.",
           },
         },
         required: ["query"],
@@ -210,7 +210,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           channelToken: {
             type: "string",
             description:
-              "Optional channel token to set channel context (e.g., 'default-channel', 'test-channel')",
+              "Optional channel token to scope the request to a specific channel. Requires CHANNEL_API_KEY_MAP to be configured with a key for this channel.",
           },
         },
         required: ["mutation"],
@@ -251,7 +251,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           channelToken: {
             type: "string",
             description:
-              "Optional channel token to set channel context (e.g., 'default-channel', 'test-channel')",
+              "Optional channel token to scope the request to a specific channel. Requires CHANNEL_API_KEY_MAP to be configured with a key for this channel.",
           },
         },
         required: ["mutation", "ids"],
@@ -486,6 +486,22 @@ async function main() {
   );
   console.error(`Admin URL: ${process.env.ADMIN_API_URL || "default"}`);
   console.error(`Shop URL: ${process.env.SHOP_API_URL || "default"}`);
+
+  // Log available channel API key mappings
+  const raw = process.env.CHANNEL_API_KEY_MAP;
+  if (raw) {
+    try {
+      const map = JSON.parse(raw);
+      const channels = Object.keys(map);
+      if (channels.length > 0) {
+        console.error(
+          `Channel API keys configured for: ${channels.join(", ")}`,
+        );
+      }
+    } catch {
+      console.error("Invalid CHANNEL_API_KEY_MAP environment variable");
+    }
+  }
 }
 
 main().catch((error) => {
