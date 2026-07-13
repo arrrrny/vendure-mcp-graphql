@@ -1,8 +1,8 @@
 # Changelog
 
-## 1.6.0 (2026-07-13)
+## 1.6.1 (2026-07-13)
 
-- **Fixed channel switching with API key auth**:
+- **Fixed channel switching with API key auth** (confirmed working via KPI aggregation tests):
   - Added `CHANNEL_API_KEY_MAP` environment variable — a JSON mapping of channel tokens to
     per-channel API keys (e.g., `{"demo-channel": "<key>", "test-channel": "<key>"}`).
   - When `channelToken` is provided on a tool call, the MCP server now:
@@ -14,6 +14,10 @@
     back to the default `VENDURE_API_KEY` (no channel switching).
 - Updated all tool descriptions to reflect the new channel token behavior.
 - Added startup logging for configured channel API key mappings.
+
+## 1.6.0 (2026-07-13)
+
+- Internal: initial implementation of per-channel API key resolution.
 
 ## 1.5.0 (2026-07-12)
 
