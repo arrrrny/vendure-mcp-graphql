@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.2 (2026-07-13)
+
+- **Fixed npm publish**: rebuilt dist from clean source to ensure vendure-token header
+  and channelApiKeys mapping are included in the published package.
+- Fixed bin entry in package.json (removed `./` prefix).
+
 ## 1.6.1 (2026-07-13)
 
 - **Fixed channel switching with API key auth** (confirmed working via KPI aggregation tests):
