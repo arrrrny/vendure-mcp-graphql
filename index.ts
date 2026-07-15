@@ -15,7 +15,7 @@ import {
 import { config } from "dotenv";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 
 // Load environment variables
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -474,6 +474,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // Start the server
 async function main() {
+  // Handle --version flag: print version and exit
+  if (process.argv.includes("--version")) {
+    const pkg = JSON.parse(
+      readFileSync(resolve(__dirname, "../package.json"), "utf-8"),
+    );
+    console.log(pkg.version);
+    process.exit(0);
+  }
+
   // Initialize shared resources (singleton pattern)
   await SharedResources.getInstance();
 

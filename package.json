@@ -1,6 +1,6 @@
 {
   "name": "vendure-mcp-graphql",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "MCP server for Vendure Admin and Shop GraphQL APIs",
   "type": "module",
   "bin": {

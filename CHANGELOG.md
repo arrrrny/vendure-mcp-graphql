@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.3 (2026-07-15)
+
+- Added `--version` flag — prints the package version and exits.
+
 ## 1.6.2 (2026-07-13)
 
 - **Fixed npm publish**: rebuilt dist from clean source to ensure vendure-token header
