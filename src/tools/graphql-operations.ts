@@ -6,9 +6,10 @@ import { getClient, getAdminUrl, getShopUrl } from "../client.js";
 export async function adminQuery(
   queryString: string,
   variables?: Record<string, any>,
+  channelToken?: string,
 ): Promise<any> {
   const client = getClient();
-  return client.request(getAdminUrl(), queryString, variables);
+  return client.request(getAdminUrl(), queryString, variables, channelToken);
 }
 
 /**
@@ -17,9 +18,10 @@ export async function adminQuery(
 export async function adminMutation(
   mutationString: string,
   variables?: Record<string, any>,
+  channelToken?: string,
 ): Promise<any> {
   const client = getClient();
-  return client.request(getAdminUrl(), mutationString, variables);
+  return client.request(getAdminUrl(), mutationString, variables, channelToken);
 }
 
 /**
@@ -28,9 +30,10 @@ export async function adminMutation(
 export async function shopQuery(
   queryString: string,
   variables?: Record<string, any>,
+  channelToken?: string,
 ): Promise<any> {
   const client = getClient();
-  return client.request(getShopUrl(), queryString, variables);
+  return client.request(getShopUrl(), queryString, variables, channelToken);
 }
 
 /**
@@ -39,9 +42,10 @@ export async function shopQuery(
 export async function shopMutation(
   mutationString: string,
   variables?: Record<string, any>,
+  channelToken?: string,
 ): Promise<any> {
   const client = getClient();
-  return client.request(getShopUrl(), mutationString, variables);
+  return client.request(getShopUrl(), mutationString, variables, channelToken);
 }
 
 const introspectionQuery = `
@@ -560,6 +564,7 @@ export async function adminBatchMutation(
   variableName: string = "id",
   extraVariables?: Record<string, any>,
   concurrency: number = 5,
+  channelToken?: string,
 ): Promise<BatchResult> {
   return executeBatch(
     getAdminUrl(),
@@ -568,6 +573,7 @@ export async function adminBatchMutation(
     variableName,
     extraVariables,
     concurrency,
+    channelToken,
   );
 }
 
@@ -581,6 +587,7 @@ export async function shopBatchMutation(
   variableName: string = "id",
   extraVariables?: Record<string, any>,
   concurrency: number = 5,
+  channelToken?: string,
 ): Promise<BatchResult> {
   return executeBatch(
     getShopUrl(),
@@ -589,6 +596,7 @@ export async function shopBatchMutation(
     variableName,
     extraVariables,
     concurrency,
+    channelToken,
   );
 }
 
@@ -599,6 +607,7 @@ async function executeBatch(
   variableName: string,
   extraVariables: Record<string, any> | undefined,
   concurrency: number,
+  channelToken?: string,
 ): Promise<BatchResult> {
   const client = getClient();
   const results: BatchResult["results"] = [];
@@ -613,7 +622,12 @@ async function executeBatch(
       const variables = { ...extraVariables, [variableName]: id };
 
       try {
-        const data = await client.request(url, mutationString, variables);
+        const data = await client.request(
+          url,
+          mutationString,
+          variables,
+          channelToken,
+        );
         succeeded++;
         results.push({ id, success: true, data });
       } catch (error) {

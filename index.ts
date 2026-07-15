@@ -15,7 +15,7 @@ import {
 import { config } from "dotenv";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 
 // Load environment variables
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -96,6 +96,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         properties: {
           query: { type: "string", description: "The GraphQL query string" },
           variables: { type: "object", description: "Optional variables" },
+          channelToken: {
+            type: "string",
+            description:
+              "Optional channel token to scope the request to a specific channel. Requires CHANNEL_API_KEY_MAP to be configured with a key for this channel.",
+          },
         },
         required: ["query"],
       },
@@ -111,6 +116,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
             description: "The GraphQL mutation string",
           },
           variables: { type: "object", description: "Optional variables" },
+          channelToken: {
+            type: "string",
+            description:
+              "Optional channel token to scope the request to a specific channel. Requires CHANNEL_API_KEY_MAP to be configured with a key for this channel.",
+          },
         },
         required: ["mutation"],
       },
@@ -148,6 +158,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
             type: "number",
             description: "Max number of concurrent mutations. Default: 5.",
           },
+          channelToken: {
+            type: "string",
+            description:
+              "Optional channel token to set channel context (e.g., 'default-channel', 'test-channel')",
+          },
         },
         required: ["mutation", "ids"],
       },
@@ -172,6 +187,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         properties: {
           query: { type: "string", description: "The GraphQL query string" },
           variables: { type: "object", description: "Optional variables" },
+          channelToken: {
+            type: "string",
+            description:
+              "Optional channel token to scope the request to a specific channel. Requires CHANNEL_API_KEY_MAP to be configured with a key for this channel.",
+          },
         },
         required: ["query"],
       },
@@ -187,6 +207,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
             description: "The GraphQL mutation string",
           },
           variables: { type: "object", description: "Optional variables" },
+          channelToken: {
+            type: "string",
+            description:
+              "Optional channel token to scope the request to a specific channel. Requires CHANNEL_API_KEY_MAP to be configured with a key for this channel.",
+          },
         },
         required: ["mutation"],
       },
@@ -222,6 +247,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           concurrency: {
             type: "number",
             description: "Max number of concurrent mutations. Default: 5.",
+          },
+          channelToken: {
+            type: "string",
+            description:
+              "Optional channel token to scope the request to a specific channel. Requires CHANNEL_API_KEY_MAP to be configured with a key for this channel.",
           },
         },
         required: ["mutation", "ids"],
@@ -279,6 +309,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 await adminQuery(
                   args?.query as string,
                   args?.variables as Record<string, any>,
+                  args?.channelToken as string | undefined,
                 ),
                 null,
                 2,
@@ -295,6 +326,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 await adminMutation(
                   args?.mutation as string,
                   args?.variables as Record<string, any>,
+                  args?.channelToken as string | undefined,
                 ),
                 null,
                 2,
@@ -314,6 +346,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                   (args?.variableName as string) || "id",
                   args?.extraVariables as Record<string, any>,
                   (args?.concurrency as number) || 5,
+                  args?.channelToken as string | undefined,
                 ),
                 null,
                 2,
@@ -348,6 +381,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 await shopQuery(
                   args?.query as string,
                   args?.variables as Record<string, any>,
+                  args?.channelToken as string | undefined,
                 ),
                 null,
                 2,
@@ -364,6 +398,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 await shopMutation(
                   args?.mutation as string,
                   args?.variables as Record<string, any>,
+                  args?.channelToken as string | undefined,
                 ),
                 null,
                 2,
@@ -383,6 +418,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                   (args?.variableName as string) || "id",
                   args?.extraVariables as Record<string, any>,
                   (args?.concurrency as number) || 5,
+                  args?.channelToken as string | undefined,
                 ),
                 null,
                 2,
@@ -438,6 +474,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // Start the server
 async function main() {
+  // Handle --version flag: print version and exit
+  if (process.argv.includes("--version")) {
+    const pkg = JSON.parse(
+      readFileSync(resolve(__dirname, "../package.json"), "utf-8"),
+    );
+    console.log(pkg.version);
+    process.exit(0);
+  }
+
   // Initialize shared resources (singleton pattern)
   await SharedResources.getInstance();
 
@@ -450,6 +495,22 @@ async function main() {
   );
   console.error(`Admin URL: ${process.env.ADMIN_API_URL || "default"}`);
   console.error(`Shop URL: ${process.env.SHOP_API_URL || "default"}`);
+
+  // Log available channel API key mappings
+  const raw = process.env.CHANNEL_API_KEY_MAP;
+  if (raw) {
+    try {
+      const map = JSON.parse(raw);
+      const channels = Object.keys(map);
+      if (channels.length > 0) {
+        console.error(
+          `Channel API keys configured for: ${channels.join(", ")}`,
+        );
+      }
+    } catch {
+      console.error("Invalid CHANNEL_API_KEY_MAP environment variable");
+    }
+  }
 }
 
 main().catch((error) => {

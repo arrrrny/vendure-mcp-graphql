@@ -1,5 +1,41 @@
 # Changelog
 
+## 1.6.3 (2026-07-15)
+
+- Added `--version` flag — prints the package version and exits.
+
+## 1.6.2 (2026-07-13)
+
+- **Fixed npm publish**: rebuilt dist from clean source to ensure vendure-token header
+  and channelApiKeys mapping are included in the published package.
+- Fixed bin entry in package.json (removed `./` prefix).
+
+## 1.6.1 (2026-07-13)
+
+- **Fixed channel switching with API key auth** (confirmed working via KPI aggregation tests):
+  - Added `CHANNEL_API_KEY_MAP` environment variable — a JSON mapping of channel tokens to
+    per-channel API keys (e.g., `{"demo-channel": "<key>", "test-channel": "<key>"}`).
+  - When `channelToken` is provided on a tool call, the MCP server now:
+    1. Uses the mapped per-channel API key for authentication
+    2. Also sets the `vendure-token` header to the requested channel
+  - Both are required: the per-channel API key provides auth scoped to that channel, and the
+    `vendure-token` header tells Vendure which channel context to use.
+  - Without `CHANNEL_API_KEY_MAP` configured, the `channelToken` parameter gracefully falls
+    back to the default `VENDURE_API_KEY` (no channel switching).
+- Updated all tool descriptions to reflect the new channel token behavior.
+- Added startup logging for configured channel API key mappings.
+
+## 1.6.0 (2026-07-13)
+
+- Internal: initial implementation of per-channel API key resolution.
+
+## 1.5.0 (2026-07-12)
+
+- Added `channelToken` parameter to batch mutation tools.
+  - `admin_batch_mutation` and `shop_batch_mutation` now accept an optional `channelToken` parameter.
+  - When provided, the channel token is explicitly set to `'default-channel'` for all batch operations.
+  - Allows batch mutations to target specific channels in multi-channel setups.
+
 ## 1.4.0 (2026-06-18)
 
 - Added `describe_operation` tool — describe any GraphQL query or mutation in detail.
